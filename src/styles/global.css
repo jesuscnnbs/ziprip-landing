@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-lighter: #E6AFF5;
+  --color-primary: #9A76A6;
+  --color-primary-darker: #6B5477;
+  --color-secondary: #82a676;
+  --color-secondary-darker: #6b8a61;
+  --color-primary-content: #100b12;
+  --color-secondary-content: #0d120b;
+  --color-dark-content: #f0f0f0;
+  --color-success: #76a676;
+  --color-warning: #a6a676;
+  --color-error: #a67676;
+  --font-family-base: 'Helvetica Neue', Arial, sans-serif;
+  --font-family-gabriela: 'Gabriela', serif;
+}
+
+.gabriela-regular {
+  font-family: "Gabriela", serif;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.text-shadow-outline {
+  text-shadow: -1px -1px 1px var(--color-dark-content),
+               1px -1px 1px var(--color-dark-content),
+               -1px 1px 1px var(--color-dark-content),
+               1px 1px 1px var(--color-dark-content),
+               -2px 0px 1px var(--color-dark-content),
+               2px 0px 1px var(--color-dark-content),
+               0px -2px 1px var(--color-dark-content),
+               0px 2px 1px var(--color-dark-content),
+               /* second layer */
+               -2px -2px 2px var(--color-primary-content),
+               2px -2px 2px var(--color-primary-content),
+               -2px 2px 2px var(--color-primary-content),
+               2px 2px 2px var(--color-primary-content),
+               -3px 0px 2px var(--color-primary-content),
+               2px 0px 2px var(--color-primary-content),
+               0px -3px 2px var(--color-primary-content),
+               0px 3px 2px var(--color-primary-content),
+               /* third layer */
+               3px 3px 2px var(--color-primary-content),
+               4px 4px 2px var(--color-primary-content),
+               5px 5px 2px var(--color-primary-content),
+               6px 6px 2px var(--color-primary-content);
+}
