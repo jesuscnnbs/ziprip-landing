@@ -28,14 +28,20 @@ import { gsap } from 'gsap';
       <!-- Loading indicator -->
       @if (!isReady()) {
         <div class="absolute inset-0 flex items-center justify-center">
-          <div class="text-white text-xl animate-pulse">Loading 3D Text...</div>
+          <div class="text-zinc-400 text-xl animate-pulse">...</div>
         </div>
       }
     </div>
   `,
   styles: [`
     .three-container {
-      min-height: 300px;
+      min-height: 450px;
+    }
+
+    @media (min-width: 768px) {
+      .three-container {
+        min-height: 450px;
+      }
     }
   `],
 })
@@ -53,21 +59,8 @@ export class ZipRip3DTextComponent implements OnDestroy {
   private isMobile = false;
   private isLowPerformance = false;
 
-  // Drag-based rotation tracking
-  private isDragging = false;
-  private previousMouseX = 0;
-  private previousMouseY = 0;
-  private targetRotationX = 0;
-  private targetRotationY = 0;
-
-  // Store bound event handlers for proper cleanup
+  // Store resize handler for cleanup
   private resizeHandler?: () => void;
-  private mouseDownHandler?: (event: MouseEvent) => void;
-  private mouseMoveHandler?: (event: MouseEvent) => void;
-  private mouseUpHandler?: () => void;
-  private touchStartHandler?: (event: TouchEvent) => void;
-  private touchMoveHandler?: (event: TouchEvent) => void;
-  private touchEndHandler?: () => void;
 
   // State
   isReady = signal(false);
@@ -84,6 +77,7 @@ export class ZipRip3DTextComponent implements OnDestroy {
     this.cleanup();
   }
 
+  // region Init threejs
   private initThreeJS() {
     if (!this.canvasRef?.nativeElement) {
       console.error('Canvas element not found');
@@ -98,7 +92,7 @@ export class ZipRip3DTextComponent implements OnDestroy {
 
     // Get container dimensions
     const width = container.clientWidth || 800;
-    const height = container.clientHeight || 300;
+    const height = container.clientHeight || 500;
 
     // Scene setup
     this.scene = new THREE.Scene();
@@ -111,7 +105,7 @@ export class ZipRip3DTextComponent implements OnDestroy {
       0.1, // Near clipping plane
       10 // Far clipping plane
     );
-    this.camera.position.z = 5;
+    this.camera.position.z = 6; // Distance from text (higher = further away)
 
     // Renderer setup with performance optimizations
     this.renderer = new THREE.WebGLRenderer({
@@ -136,9 +130,6 @@ export class ZipRip3DTextComponent implements OnDestroy {
     this.resizeHandler = this.onWindowResize.bind(this);
     window.addEventListener('resize', this.resizeHandler);
 
-    // Set up mouse/touch tracking for interactive rotation
-    this.setupInteractiveControls();
-
     // Start the animation loop
     this.animate();
 
@@ -150,106 +141,9 @@ export class ZipRip3DTextComponent implements OnDestroy {
 
     console.log('Three.js initialized successfully');
   }
+  //endregion
 
-  private setupInteractiveControls() {
-    const canvas = this.canvasRef.nativeElement;
-
-    // Mouse down - Start dragging
-    this.mouseDownHandler = (event: MouseEvent) => {
-      this.isDragging = true;
-      this.previousMouseX = event.clientX;
-      this.previousMouseY = event.clientY;
-      canvas.style.cursor = 'grabbing';
-    };
-
-    // Mouse move - Rotate while dragging
-    this.mouseMoveHandler = (event: MouseEvent) => {
-      if (!this.isDragging) {
-        canvas.style.cursor = 'grab';
-        return;
-      }
-
-      // Calculate delta (how much the mouse moved)
-      const deltaX = event.clientX - this.previousMouseX;
-      const deltaY = event.clientY - this.previousMouseY;
-
-      // Update target rotation based on delta
-      // Sensitivity factor controls how fast it rotates
-      const sensitivity = 0.005;
-      this.targetRotationY += deltaX * sensitivity;
-      this.targetRotationX += deltaY * sensitivity;
-
-      // Clamp rotations to limit range
-      // X rotation (vertical tilt): ±60 degrees
-      this.targetRotationX = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, this.targetRotationX));
-
-      // Y rotation (horizontal spin): ±90 degrees
-      this.targetRotationY = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.targetRotationY));
-
-      // Update previous position
-      this.previousMouseX = event.clientX;
-      this.previousMouseY = event.clientY;
-    };
-
-    // Mouse up - Stop dragging
-    this.mouseUpHandler = () => {
-      this.isDragging = false;
-      canvas.style.cursor = 'grab';
-    };
-
-    // Touch start - Start dragging on mobile
-    this.touchStartHandler = (event: TouchEvent) => {
-      if (event.touches.length > 0) {
-        this.isDragging = true;
-        const touch = event.touches[0];
-        this.previousMouseX = touch.clientX;
-        this.previousMouseY = touch.clientY;
-      }
-    };
-
-    // Touch move - Rotate while dragging on mobile
-    this.touchMoveHandler = (event: TouchEvent) => {
-      if (!this.isDragging || event.touches.length === 0) return;
-
-      const touch = event.touches[0];
-
-      // Calculate delta
-      const deltaX = touch.clientX - this.previousMouseX;
-      const deltaY = touch.clientY - this.previousMouseY;
-
-      // Update target rotation
-      const sensitivity = 0.005;
-      this.targetRotationY += deltaX * sensitivity;
-      this.targetRotationX += deltaY * sensitivity;
-
-      // Clamp X rotation
-      this.targetRotationX = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, this.targetRotationX));
-
-      // Update previous position
-      this.previousMouseX = touch.clientX;
-      this.previousMouseY = touch.clientY;
-    };
-
-    // Touch end - Stop dragging on mobile
-    this.touchEndHandler = () => {
-      this.isDragging = false;
-    };
-
-    // Add event listeners
-    canvas.addEventListener('mousedown', this.mouseDownHandler);
-    window.addEventListener('mousemove', this.mouseMoveHandler);
-    window.addEventListener('mouseup', this.mouseUpHandler);
-
-    canvas.addEventListener('touchstart', this.touchStartHandler, { passive: true });
-    window.addEventListener('touchmove', this.touchMoveHandler, { passive: true });
-    window.addEventListener('touchend', this.touchEndHandler);
-
-    // Set initial cursor
-    canvas.style.cursor = 'grab';
-
-    console.log('Interactive drag controls initialized');
-  }
-
+  //region device detection
   private detectDeviceCapabilities() {
     // Guard against SSR - only run in browser
     if (typeof window === 'undefined' || typeof navigator === 'undefined') {
@@ -278,7 +172,9 @@ export class ZipRip3DTextComponent implements OnDestroy {
       memory,
     });
   }
+  // endregion
 
+  // region Lighting
   private setupLighting() {
     // 1. Ambient Light - Provides base illumination to all objects
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -286,7 +182,7 @@ export class ZipRip3DTextComponent implements OnDestroy {
 
     // 2. Main Directional Light - Acts like the sun
     const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5);
-    directionalLight.position.set(5, 5, 5);
+    directionalLight.position.set(-5, 5, 2);
 
     // Only enable shadows on high-performance devices
     if (!this.isLowPerformance) {
@@ -310,42 +206,70 @@ export class ZipRip3DTextComponent implements OnDestroy {
       // 4. Top Light - Adds dramatic lighting from above
       const topLight = new THREE.DirectionalLight(0xffffff, 0.8);
       topLight.position.set(0, 10, 0);
-      this.scene.add(topLight);
-
-      // 5. Point Lights - Create highlights and shimmer effects
-      // Front-left point light (warm)
-      /*const pointLight1 = new THREE.PointLight(0xffd700, 2, 10);
-      pointLight1.position.set(-3, 2, 3);
-      this.scene.add(pointLight1);
-
-      // Front-right point light (cool)
-      const pointLight2 = new THREE.PointLight(0x00ffff, 2, 10);
-      pointLight2.position.set(3, 2, 3);
-      this.scene.add(pointLight2);
-
-      // Back light for rim lighting effect
-      const rimLight = new THREE.PointLight(0xffffff, 1.5, 10);
-      rimLight.position.set(0, 0, -5);
-      this.scene.add(rimLight);*/
+      this.scene.add(topLight); 
     }
 
-    // 6. Hemisphere Light - Simulates sky and ground lighting
+    // 6. Hemisphere Light - Simulates sky and ground lighting with environment colors
     const hemisphereLight = new THREE.HemisphereLight(
-      0xffffbb, // Sky color (warm white)
-      0x080820, // Ground color (dark blue)
-      0.6
+      0x9A76A6, // Sky color (púrpura) - matches environment top
+      0x82a676, // Ground color (verde) - matches environment bottom
+      0.8
     );
     this.scene.add(hemisphereLight);
 
     console.log('Lighting system initialized (performance mode:', this.isLowPerformance ? 'low' : 'high', ')');
   }
+  // endregion
 
+  // region Environment Map
+  private createEnvironmentMap(): THREE.CubeTexture {
+    // Create a simple environment map with gradient colors
+
+    const size = 512;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+
+    // Create gradient for each face of the cube
+    const createGradientTexture = (topColor: string, bottomColor: string) => {
+      const gradient = ctx.createLinearGradient(0, 0, 0, size);
+      gradient.addColorStop(0, topColor); // Top
+      gradient.addColorStop(1, bottomColor); // Bottom
+
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+
+      return canvas.toDataURL();
+    };
+
+    // Colors for environment reflection
+    const topColor = '#9A76A6'; // Rosa/púrpura arriba
+    const bottomColor = '#000000'; // Verde abajo
+
+    // Create 6 faces for the cube map (all with same gradient)
+    const urls = [
+      createGradientTexture(topColor, bottomColor), // positive x
+      createGradientTexture(topColor, bottomColor), // negative x
+      createGradientTexture(topColor, topColor), // positive y (top)
+      createGradientTexture(bottomColor, bottomColor), // negative y (bottom)
+      createGradientTexture(topColor, bottomColor), // positive z
+      createGradientTexture(topColor, bottomColor), // negative z
+    ];
+
+    // Load the cube texture
+    const loader = new THREE.CubeTextureLoader();
+    const cubeTexture = loader.load(urls);
+
+    return cubeTexture;
+  }
+  //endregion
+  // region 3D Text Creation
   private createText3D() {
     const fontLoader = new FontLoader();
 
-    // Load font from CDN (Helvetiker font is commonly used with Three.js)
-    // You can also use local fonts by placing them in /public/fonts/
-    const fontUrl = 'https://threejs.org/examples/fonts/helvetiker_bold.typeface.json';
+    // Load Gabriela font (Google Font converted to typeface.json)
+    const fontUrl = '/fonts/Gabriela/Gabriela_Regular.json';
 
     fontLoader.load(
       fontUrl,
@@ -362,69 +286,41 @@ export class ZipRip3DTextComponent implements OnDestroy {
           depth: 0.3, // How deep/thick the text is (3D depth)
           curveSegments: curveSegments, // Number of points on the curves (fewer on low-perf)
           bevelEnabled: true, // Enable bevel for rounded edges
-          bevelThickness: 0.09, // Bevel thickness
+          bevelThickness: 0.02, // Bevel thickness
           bevelSize: 0.05, // Bevel size
-          bevelOffset: 0.01,
+          bevelOffset: 0,
           bevelSegments: bevelSegments, // Smoothness of the bevel (fewer on low-perf)
         });
 
         // Center the text geometry
         textGeometry.center();
 
+        // Create environment map with custom colors
+        const envMap = this.createEnvironmentMap();
+
         // Create advanced material with physical properties
         // Using MeshPhysicalMaterial for realistic rendering
         const material = new THREE.MeshPhysicalMaterial({
-          // Base color (white/silver)
-          color: 0xffffff,
+          // Base color (silver metallic)
+          color: 0xaaaaaa,
 
-          // Metalness: 0 = dielectric (plastic), 1 = full metal
-          metalness: 0.7,
+          // Metalness: 1 = full metal for reflections
+          metalness: 1,
 
-          // Roughness: 0 = smooth/reflective, 1 = rough/diffuse
-          roughness: 0.1,
+          // Roughness: 0.2 = mostly smooth with slight texture
+          roughness: 0.2,
 
           // Clearcoat adds a glossy layer on top (like car paint)
-          clearcoat: 1.0,
+          clearcoat: 0.5,
           clearcoatRoughness: 0.1,
 
           // Reflectivity enhances the material's reflection
           reflectivity: 1.0,
 
-          // Emissive makes the material glow
-          emissive: 0x555555, // Slight glow
-          emissiveIntensity: 1,
-
-          // Environment mapping (will be enhanced by lighting)
-          envMapIntensity: 3.5,
-
-          // Enable transmission for glass-like effects (optional)
-           transmission: 0.1,
-           thickness: 0.5,
+          // Environment map for colored reflections
+          envMap: envMap,
+          envMapIntensity: 2.5,
         });
-
-        // Optional: Load texture maps for even more realism
-        // Uncomment and add texture files to /public/textures/ to use
-        
-        const textureLoader = new THREE.TextureLoader();
-
-        // Normal map adds surface detail
-        material.normalMap = textureLoader.load('/textures/normal.jpg');
-        material.normalScale = new THREE.Vector2(0.5, 0.5);
-
-        // Roughness map controls shine variation
-        material.roughnessMap = textureLoader.load('/textures/roughness.jpg');
-
-        // Metallic map controls metallic variation
-        material.metalnessMap = textureLoader.load('/textures/metallic.jpg');
-
-        // Environment map for reflections
-        const cubeTextureLoader = new THREE.CubeTextureLoader();
-        material.envMap = cubeTextureLoader.load([
-          '/textures/px.jpg', '/textures/nx.jpg',
-          '/textures/py.jpg', '/textures/ny.jpg',
-          '/textures/pz.jpg', '/textures/nz.jpg'
-        ]);
-        
 
         // Create mesh and add to scene
         this.textMesh = new THREE.Mesh(textGeometry, material);
@@ -449,63 +345,50 @@ export class ZipRip3DTextComponent implements OnDestroy {
       }
     );
   }
-
+  //endregion
+  //region Intro animation
   private animateTextEntrance() {
     if (!this.textMesh) return;
 
-    // Set initial state (invisible, scaled down, positioned back)
-    this.textMesh.scale.set(0.1, 0.1, 0.1);
-    this.textMesh.position.z = -10;
-
+    // Set initial state for main text (invisible, scaled down)
+    this.textMesh.scale.set(0, 0, 0);
     if (this.textMesh.material && 'opacity' in this.textMesh.material) {
       this.textMesh.material.transparent = true;
       this.textMesh.material.opacity = 0;
     }
 
-    // Create GSAP timeline for entrance animation
+    // Simple scale up animation
     const timeline = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
     timeline
-      // Scale up
+      // Fade in and scale up simultaneously (main text)
       .to(this.textMesh.scale, {
-        x: 1,
-        y: 1,
-        z: 1,
-        duration: 1.5,
-        ease: 'elastic.out(1, 0.5)',
+        x: 1.6,
+        y: 1.6,
+        z: 1.6,
+        duration: 1.2,
+        ease: 'expo.out',
       })
-      // Move forward
-      .to(
-        this.textMesh.position,
-        {
-          z: 0.5,
-          duration: 1.5,
-        },
-        '<' // Start at the same time as scale
-      )
-      // Fade in
       .to(
         this.textMesh.material,
         {
           opacity: 1,
-          duration: 1,
+          duration: 0.8,
         },
-        '<0.3' // Start slightly after scale
+        '<' // Start at the same time as scale
       )
-      // Add a little bounce rotation
       .to(
         this.textMesh.rotation,
         {
-          y: Math.PI / 18,
-          x: Math.PI / 18,
+          x: -0.4,
           z: Math.PI * 2,
-          duration: 0.5,
-          ease: 'powe2.out',
+          duration: 1.2,
         },
-        '<'
+        '<' // Start at the same time as scale
       );
   }
-
+  //endregion
+  // region Resize
   private onWindowResize() {
     if (!this.renderer || !this.camera) return;
 
@@ -518,25 +401,10 @@ export class ZipRip3DTextComponent implements OnDestroy {
     this.renderer.setSize(width, height);
   }
 
+  // endregion
+  // region Animation loop
   private animate() {
     this.animationFrameId = requestAnimationFrame(() => this.animate());
-
-    // Animate the text mesh if it exists
-    if (this.textMesh) {
-      // Smooth interpolation (lerp) to follow cursor/finger
-      // This creates a smooth "lag" effect as the text follows the target rotation
-      const lerpFactor = 0.04; // Lower = smoother/slower, Higher = snappier/faster
-
-      // Interpolate rotation towards target
-      this.textMesh.rotation.y += (this.targetRotationY - this.textMesh.rotation.y) * lerpFactor;
-      this.textMesh.rotation.x += (this.targetRotationX - this.textMesh.rotation.x) * lerpFactor;
-
-      // Only add floating effect on high-performance devices
-      if (!this.isLowPerformance) {
-        // Subtle floating effect (up and down)
-        this.textMesh.position.y = Math.sin(Date.now() * 0.001) * 0.1;
-      }
-    }
 
     // Render the scene
     if (this.renderer && this.scene && this.camera) {
@@ -557,28 +425,6 @@ export class ZipRip3DTextComponent implements OnDestroy {
       // Remove window event listeners
       if (this.resizeHandler) {
         window.removeEventListener('resize', this.resizeHandler);
-      }
-      if (this.mouseMoveHandler) {
-        window.removeEventListener('mousemove', this.mouseMoveHandler);
-      }
-      if (this.mouseUpHandler) {
-        window.removeEventListener('mouseup', this.mouseUpHandler);
-      }
-      if (this.touchMoveHandler) {
-        window.removeEventListener('touchmove', this.touchMoveHandler);
-      }
-      if (this.touchEndHandler) {
-        window.removeEventListener('touchend', this.touchEndHandler);
-      }
-
-      // Remove canvas event listeners
-      if (canvas) {
-        if (this.mouseDownHandler) {
-          canvas.removeEventListener('mousedown', this.mouseDownHandler);
-        }
-        if (this.touchStartHandler) {
-          canvas.removeEventListener('touchstart', this.touchStartHandler);
-        }
       }
     }
 

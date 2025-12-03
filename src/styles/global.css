@@ -21,28 +21,3 @@
   font-weight: 600;
   font-style: normal;
 }
-
-.text-shadow-outline {
-  text-shadow: -1px -1px 1px var(--color-dark-content),
-               1px -1px 1px var(--color-dark-content),
-               -1px 1px 1px var(--color-dark-content),
-               1px 1px 1px var(--color-dark-content),
-               -2px 0px 1px var(--color-dark-content),
-               2px 0px 1px var(--color-dark-content),
-               0px -2px 1px var(--color-dark-content),
-               0px 2px 1px var(--color-dark-content),
-               /* second layer */
-               -2px -2px 2px var(--color-primary-content),
-               2px -2px 2px var(--color-primary-content),
-               -2px 2px 2px var(--color-primary-content),
-               2px 2px 2px var(--color-primary-content),
-               -3px 0px 2px var(--color-primary-content),
-               2px 0px 2px var(--color-primary-content),
-               0px -3px 2px var(--color-primary-content),
-               0px 3px 2px var(--color-primary-content),
-               /* third layer */
-               3px 3px 2px var(--color-primary-content),
-               4px 4px 2px var(--color-primary-content),
-               5px 5px 2px var(--color-primary-content),
-               6px 6px 2px var(--color-primary-content);
-}

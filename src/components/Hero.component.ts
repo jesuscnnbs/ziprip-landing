@@ -11,7 +11,7 @@ import { ZipRip3DTextComponent } from './ZipRip3DText.component';
     <div class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary-lighter via-primary to-primary-darker">
       <!-- Animated background elements -->
       <div class="absolute inset-0 overflow-hidden">
-        <div class="blob blob-1 absolute w-96 h-96 bg-white/20 rounded-full blur-3xl"></div>
+        <div class="blob blob-1 absolute w-96 h-96 bg-white/20 rounded-full blur-2xl"></div>
         <div class="blob blob-2 absolute w-96 h-96 bg-neutral-400/20 rounded-full blur-3xl"></div>
         <div class="blob blob-3 absolute w-96 h-96 bg-zinc-300/20 rounded-full blur-3xl"></div>
       </div>
@@ -24,7 +24,7 @@ import { ZipRip3DTextComponent } from './ZipRip3DText.component';
         </div>
 
         <!-- 3D Text Title -->
-        <div class="hero-3d-text relative z-10 w-full h-64 md:h-96 mb-6 mt-32">
+        <div class="hero-3d-text relative z-10 w-full h-88 md:h-112 my-6">
           <app-ziprip-3d-text />
         </div>
 
@@ -51,33 +51,14 @@ import { ZipRip3DTextComponent } from './ZipRip3DText.component';
           </button>
         </div>
 
-        <!-- Feature cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-20">
-          <div class="feature-card opacity-0 translate-y-12 p-6 bg-white/5 backdrop-blur-sm rounded-xl border-2 border-white/30 hover:bg-white/10 hover:border-white/50 transition-all duration-300 shadow-lg">
-            <div class="text-4xl mb-4 grayscale">🎯</div>
-            <h3 class="text-xl font-bold text-white mb-2 underline decoration-2 decoration-white/30">Análisis Sin Filtros</h3>
-            <p class="text-neutral-400">Crítica honesta de la industria del videojuego</p>
-          </div>
-          <div class="feature-card opacity-0 translate-y-12 p-6 bg-white/5 backdrop-blur-sm rounded-xl border-2 border-white/30 hover:bg-white/10 hover:border-white/50 transition-all duration-300 shadow-lg">
-            <div class="text-4xl mb-4 grayscale">😂</div>
-            <h3 class="text-xl font-bold text-white mb-2 underline decoration-2 decoration-white/30">Humor & Hate</h3>
-            <p class="text-neutral-400">Contenido fresco con la dosis justa de sarcasmo</p>
-          </div>
-          <div class="feature-card opacity-0 translate-y-12 p-6 bg-white/5 backdrop-blur-sm rounded-xl border-2 border-white/30 hover:bg-white/10 hover:border-white/50 transition-all duration-300 shadow-lg">
-            <div class="text-4xl mb-4 grayscale">🎤</div>
-            <h3 class="text-xl font-bold text-white mb-2 underline decoration-2 decoration-white/30">Voz Independiente</h3>
-            <p class="text-neutral-400">Años de abuso nos dieron el micro perfecto</p>
-          </div>
-        </div>
-      </div>
-
       <!-- Scroll indicator -->
-      <div class="scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 opacity-0">
+      
+    </div>
+    <div class="scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 opacity-0">
         <div class="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
           <div class="w-1 h-3 bg-white/70 rounded-full mt-2 animate-bounce"></div>
         </div>
       </div>
-    </div>
   `,
 })
 export class HeroComponent implements OnInit {
@@ -138,25 +119,20 @@ export class HeroComponent implements OnInit {
         ease: 'back.out(1.7)',
       })
       // 3D text has its own entrance animation, so we skip animating it here
+      // Wait 2 seconds for 3D text animation to complete
+      .to({}, { duration: 0.5 })
       // Subtitle fades in with slight upward movement
       .to('.hero-subtitle', {
         opacity: 1,
         y: 0,
         duration: 0.8,
-      }, '-=0.4')
+      })
       // CTA buttons appear
       .to('.hero-cta', {
         opacity: 1,
         y: 0,
         duration: 0.6,
       }, '-=0.4')
-      // Feature cards stagger in
-      .to('.feature-card', {
-        opacity: 1,
-        y: 0,
-        stagger: 0.15,
-        duration: 0.6,
-      }, '-=0.3')
       // Scroll indicator appears
       .to('.scroll-indicator', {
         opacity: 1,
