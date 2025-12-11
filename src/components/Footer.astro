@@ -1,0 +1,63 @@
+---
+// Get current year for copyright
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="footer-content">
+    <p class="footer-text">
+      <span class="font-family-gabriela italic text-xl">ZipRip</span> &copy; {currentYear} --- made with &lt;3
+    </p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    width: 100%;
+    min-height: 200px;
+    background-image: url('/teach-ziprip.png');
+    background-size: 200px 200px;
+    background-position: 95% 40px;
+    background-repeat: no-repeat;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    margin-top: auto;
+  }
+
+  /* Dark overlay for better text readability */
+  .footer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .footer-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+
+  .footer-text {
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    margin: 0;
+    letter-spacing: 0.5px;
+  }
+
+  @media (max-width: 768px) {
+    .footer {
+      min-height: 150px;
+      padding: 1.5rem;
+    }
+
+    .footer-text {
+      font-size: 0.875rem;
+    }
+  }
+</style>

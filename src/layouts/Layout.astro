@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css'
+import Footer from '../components/Footer.astro';
 ---
 <!doctype html>
 <html lang="en">
@@ -13,8 +14,9 @@ import '../styles/global.css'
 		<link href="https://fonts.googleapis.com/css2?family=Gabriela&display=swap" rel="stylesheet">
 		<title>ZipRip - Análisis y Crítica de Videojuegos</title>
 	</head>
-	<body>
+	<body class="bg-gradient-to-br from-primary-lighter via-primary to-primary-darker min-h-screen flex flex-col">
 		<slot />
+		<Footer />
 	</body>
 </html>
 

@@ -2,13 +2,14 @@ import { Component, signal, ElementRef, afterNextRender } from '@angular/core';
 import type { OnInit } from '@angular/core';
 import { gsap } from 'gsap';
 import { ZipRip3DTextComponent } from './ZipRip3DText.component';
+import { AxisControlSphereComponent, type RotationState } from './AxisControlSphere.component';
 
 @Component({
   selector: 'app-hero',
   standalone: true,
-  imports: [ZipRip3DTextComponent],
+  imports: [ZipRip3DTextComponent, AxisControlSphereComponent],
   template: `
-    <div class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary-lighter via-primary to-primary-darker">
+    <div class="relative min-h-screen flex items-center justify-center overflow-hidden gap-2 py-3">
       <!-- Animated background elements -->
       <div class="absolute inset-0 overflow-hidden">
         <div class="blob blob-1 absolute w-96 h-96 bg-white/20 rounded-full blur-2xl"></div>
@@ -17,15 +18,18 @@ import { ZipRip3DTextComponent } from './ZipRip3DText.component';
       </div>
 
       <!-- Hero content -->
-      <div class="relative z-10 max-w-6xl mx-auto px-6 text-center">
-        <!-- Logo/Brand - Behind text -->
-        <div class="hero-logo absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 z-0">
-          <img src="/lips.jpg" alt="ZipRip Logo" class="w-64 h-64 md:w-96 md:h-96 opacity-60 border-4 border-primary rounded-full" />
-        </div>
+      <div class="relative max-w-6xl mx-auto px-6 text-center pb-20">
 
         <!-- 3D Text Title -->
-        <div class="hero-3d-text relative z-10 w-full h-88 md:h-112 my-6">
-          <app-ziprip-3d-text />
+        <div class="hero-3d-text relative w-full h-88 md:h-112 my-6">
+          <app-ziprip-3d-text [rotation]="textRotation()" />
+        </div>
+
+        <!-- Scroll indicator -->
+        <div class="scroll-indicator relative opacity-0">
+          <div class="mx-auto w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
+            <div class="w-1 h-3 bg-white/70 rounded-full mt-2 animate-bounce"></div>
+          </div>
         </div>
 
         <!-- Subtitle -->
@@ -37,32 +41,32 @@ import { ZipRip3DTextComponent } from './ZipRip3DText.component';
 
         <!-- CTA Buttons -->
         <div class="hero-cta flex flex-col sm:flex-row gap-4 justify-center opacity-0 translate-y-8">
-          <button class="cta-button px-8 py-4 bg-white text-black font-bold rounded-lg shadow-lg border-2 border-black hover:bg-neutral-100 transition-all duration-300 hover:scale-105 hover:shadow-2xl flex gap-2 items-center justify-center">
+          <a href="https://youtube.com/@DonZipRip" target="_blank" rel="noopener noreferrer" class="cta-button px-8 py-4 bg-white text-black font-bold rounded-lg shadow-lg border-2 border-black hover:bg-neutral-100 transition-all duration-300 hover:scale-105 hover:shadow-2xl flex gap-2 items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
               <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
             </svg>
             Suscríbete
-          </button>
-          <button class="cta-button px-8 py-4 bg-transparent backdrop-blur-sm text-white font-bold rounded-lg border-2 border-white/60 hover:bg-white/10 hover:border-white transition-all duration-300 flex gap-2 items-center justify-center">
+          </a>
+          <a href="https://youtube.com/@DonZipRip/videos" target="_blank" rel="noopener noreferrer" class="cta-button px-8 py-4 bg-transparent backdrop-blur-sm text-white font-bold rounded-lg border-2 border-white/60 hover:bg-white/10 hover:border-white transition-all duration-300 flex gap-2 items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
             </svg>
             Ver Videos
-          </button>
+          </a>
         </div>
-
-      <!-- Scroll indicator -->
-      
     </div>
-    <div class="scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 opacity-0">
-        <div class="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
-          <div class="w-1 h-3 bg-white/70 rounded-full mt-2 animate-bounce"></div>
-        </div>
-      </div>
+
+    <!-- Axis Control Sphere (fixed position bottom-right) -->
+    <div class="fixed bottom-8 right-8 z-50">
+      <app-axis-control-sphere (rotationChange)="onRotationChange($event)" />
+    </div>
   `,
 })
 export class HeroComponent implements OnInit {
   private timeline?: gsap.core.Timeline;
+
+  // Track text rotation from axis control
+  textRotation = signal<RotationState | null>(null);
 
   constructor(private elementRef: ElementRef) {
     // Use afterNextRender for client-side only animation
@@ -73,6 +77,10 @@ export class HeroComponent implements OnInit {
 
   ngOnInit() {
     // Component initialized
+  }
+
+  onRotationChange(rotation: RotationState) {
+    this.textRotation.set(rotation);
   }
 
   private initAnimations() {

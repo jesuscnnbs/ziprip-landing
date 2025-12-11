@@ -1,18 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { HeroComponent } from '../components/Hero.component';
-import { HelloComponent } from '../components/Hello.component';
 ---
 
 <Layout>
 	<HeroComponent client:load />
-
-	<!-- Test components section (you can remove this later) -->
-	<div class="bg-slate-100 py-16">
-		<div class="max-w-4xl mx-auto px-6 space-y-6">
-			<h2 class="text-3xl font-bold text-slate-800 mb-8">Component Tests</h2>
-			<HelloComponent client:visible />
-			<HelloComponent client:visible helpText="Custom help text!" />
-		</div>
-	</div>
 </Layout>
