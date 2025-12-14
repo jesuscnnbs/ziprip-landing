@@ -247,6 +247,9 @@ export class AxisControlSphereComponent implements OnDestroy {
   private mouseDownHandler?: (e: MouseEvent) => void;
   private mouseMoveHandler?: (e: MouseEvent) => void;
   private mouseUpHandler?: () => void;
+  private touchStartHandler?: (e: TouchEvent) => void;
+  private touchMoveHandler?: (e: TouchEvent) => void;
+  private touchEndHandler?: () => void;
   private resizeHandler?: () => void;
 
   // State
@@ -305,6 +308,9 @@ export class AxisControlSphereComponent implements OnDestroy {
 
     // Set up mouse controls
     this.setupMouseControls();
+
+    // Set up touch controls
+    this.setupTouchControls();
 
     // Handle window resize
     this.resizeHandler = this.onWindowResize.bind(this);
@@ -546,6 +552,68 @@ export class AxisControlSphereComponent implements OnDestroy {
     canvas.addEventListener('mousedown', this.mouseDownHandler);
     window.addEventListener('mousemove', this.mouseMoveHandler);
     window.addEventListener('mouseup', this.mouseUpHandler);
+  }
+
+  private setupTouchControls() {
+    const canvas = this.canvasRef.nativeElement;
+
+    this.touchStartHandler = (event: TouchEvent) => {
+      // Prevent page scrolling when touching the canvas
+      event.preventDefault();
+
+      if (event.touches.length === 1) {
+        this.isDragging = true;
+        const touch = event.touches[0];
+        this.previousMousePosition = {
+          x: touch.clientX,
+          y: touch.clientY,
+        };
+        canvas.style.cursor = 'grabbing';
+      }
+    };
+
+    this.touchMoveHandler = (event: TouchEvent) => {
+      // Prevent page scrolling during drag
+      event.preventDefault();
+
+      if (!this.isDragging || event.touches.length !== 1) return;
+
+      const touch = event.touches[0];
+      const deltaX = touch.clientX - this.previousMousePosition.x;
+      const deltaY = touch.clientY - this.previousMousePosition.y;
+
+      // Update rotation based on touch movement
+      this.currentRotation.y += deltaX * 0.01;
+      this.currentRotation.x += deltaY * 0.01;
+
+      // Apply rotation to the sphere group
+      this.sphereGroup.rotation.x = this.currentRotation.x;
+      this.sphereGroup.rotation.y = this.currentRotation.y;
+      this.sphereGroup.rotation.z = this.currentRotation.z;
+
+      // Emit rotation change event
+      this.rotationChange.emit({
+        x: this.currentRotation.x,
+        y: this.currentRotation.y,
+        z: this.currentRotation.z,
+      });
+
+      this.previousMousePosition = {
+        x: touch.clientX,
+        y: touch.clientY,
+      };
+    };
+
+    this.touchEndHandler = () => {
+      this.isDragging = false;
+      canvas.style.cursor = 'grab';
+    };
+
+    // Use { passive: false } to allow preventDefault()
+    canvas.addEventListener('touchstart', this.touchStartHandler, { passive: false });
+    canvas.addEventListener('touchmove', this.touchMoveHandler, { passive: false });
+    canvas.addEventListener('touchend', this.touchEndHandler);
+    canvas.addEventListener('touchcancel', this.touchEndHandler);
   }
 
   private onWindowResize() {
